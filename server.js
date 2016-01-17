@@ -35,18 +35,18 @@ server.on("uncaughtException", function (req, res, route, err) {
     res.send(err);
 });
 
-var j = schedule.scheduleJob('0 0 0 * * ?', function () {
-    registrationDAO.findRegistrationByDate(moment().format('YYYY-MM-DD')).then(function (rs) {
-        rs.length && rs.forEach(function (r) {
-            var d = moment(moment().format('YYYY-MM-DD') + ' ' + r.shiftPeriodName.split('-')[0]).add(-1, 'h');
+registrationDAO.findRegistrationByDate(moment().format('YYYY-MM-DD')).then(function (rs) {
+    rs.length && rs.forEach(function (r) {
+        var d = moment(moment(r.registerDate).format('YYYY-MM-DD') + ' ' + r.shiftPeriodName.split('-')[0], 'YYYY-MM-DD h:m').add(-1, 'h');
+        if (!d.isBefore(moment())) {
             var k = schedule.scheduleJob(d.toDate(), function () {
-                deviceDAO.findTokenByUid(req.user.id).then(function (tokens) {
+                deviceDAO.findTokenByUid(r.patientBasicInfoId).then(function (tokens) {
                     if (tokens.length && tokens[0]) {
-                        var notificationBody = util.format(config.cancelRegistrationTemplate, r.patientName + (r.gender == 0 ? '先生' : '女士'),
+                        var notificationBody = util.format(config.outPatientReminderTemplate, r.patientName + (r.gender == 0 ? '鍏堢敓' : '濂冲＋'),
                             r.hospitalName + r.departmentName + r.doctorName, moment(r.registerDate).format('YYYY-MM-DD') + ' ' + r.shiftPeriodName);
                         pusher.push({
                             body: notificationBody,
-                            title: '就诊提醒',
+                            title: '灏辫瘖鎻愰啋',
                             audience: {registration_id: [tokens[0].token]},
                             patientName: r.patientName,
                             patientMobile: r.patientMobile,
@@ -56,11 +56,10 @@ var j = schedule.scheduleJob('0 0 0 * * ?', function () {
                         });
                     }
                 });
-            })
-        })
+            });
+        }
     })
-
-});
+})
 server.listen(config.server.port, config.server.host, function () {
     console.log('%s listening at %s', server.name, server.url);
 });

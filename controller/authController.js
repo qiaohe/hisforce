@@ -55,6 +55,7 @@ function acceptInvitation(uid, invitationCode, mobile, token) {
 module.exports = {
     register: function (req, res, next) {
         var user = req.body;
+        if (!user.gender) user.gender = 0;
         redis.getAsync(user.mobile).then(function (reply) {
             if (!(reply && reply == user.certCode)) return res.send({ret: 1, message: i18n.get('sms.code.invalid')});
             return patientDAO.findByMobile(user.mobile).then(function (users) {

@@ -11,7 +11,7 @@ module.exports = {
     update: function (device) {
         return db.query(sqlMapping.device.update, [device, device.token]);
     },
-    findTokenByUid(uid){
+    findTokenByUid: function (uid) {
         return db.query(sqlMapping.device.findTokenByUid, uid);
     }
 }

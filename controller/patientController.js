@@ -105,6 +105,9 @@ module.exports = {
         registration.patientBasicInfoId = req.user.id;
         registrationDAO.findRegistrationById(registration.id).then(function (rs) {
             var oldRegistration = rs[0];
+            registration.patientName = rs[0].patientName;
+            registration.patientMobile = rs[0].patientMobile;
+            registration.gender = rs[0].gender;
             return registrationDAO.updateShiftPlanDec(rs[0].doctorId, rs[0].registerDate, rs[0].shiftPeriod);
         }).then(function () {
             return hospitalDAO.findDoctorById(registration.doctorId)
