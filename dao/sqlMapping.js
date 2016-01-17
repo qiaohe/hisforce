@@ -38,7 +38,8 @@ module.exports = {
         findShiftPeriodById: 'select * from ShiftPeriod where hospitalId = ? and id =?',
         findRegistrationsByUid: 'select r.id, r.doctorId, doctorName, doctorHeadPic,registrationFee, departmentName,doctorJobTitle, hospitalName, patientName,concat(DATE_FORMAT(r.registerDate, \'%Y-%m-%d \') , s.`name`) as shiftPeriod, orderNo, r.status  from Registration r, ShiftPeriod s where r.shiftPeriod = s.id and paymentType =1 and patientBasicInfoId = ? order by r.id desc limit ?,?',
         findById: 'select * from Registration where id =?',
-        updateRegistration: "update Registration set ? where id = ?"
+        updateRegistration: "update Registration set ? where id = ?",
+        findRegistrationsByDate: 'select r.*, sp.`name` as shiftPeriodName from Registration r, ShiftPeriod sp where sp.id =r.shiftPeriod AND r.registerDate = ?'
     },
 
     sysConfig: {

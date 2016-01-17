@@ -4,7 +4,7 @@ module.exports = {
     server: {
         name: 'hisforce app ',
         version: '0.0.1',
-        host: 'localhost',
+        host: '121.42.171.213',
         port: 8081
     },
     db: {
@@ -56,6 +56,12 @@ module.exports = {
     cashbackType: ['赠劵', '优惠券', '免单'],
     paymentType: ['银行卡', '储值卡', '现金', '代付', '微信钱包', '支付宝'],
     consumptionLevel: ['<1000', '1000~3000', '3000~5000', '5000~10000', '>10000'],
-    registrationNotificationTemplate: ':%s先生/女士，您已成功预约%s %s普通/专家号，您的顺序号是%s，就诊日期是%s，请至少提前15分钟，到所预约科室分诊台，进行预约挂号确认，并在候诊区待诊。'
+    registrationNotificationTemplate: '%s，您已成功预约%s医生，就诊时间%s，请提前到半小时到分诊台，进行取号确认',
+    changeRegistrationTemplate: '%s，您已成功改约%s医生，就诊时间%s，请提前到半小时到分诊台，进行取号确认。',
+    cancelRegistrationTemplate: '%s，您已成功取消预约%s，如有需要请再次预约，谢谢！',
+    outPatientReminderTemplate: '%s，您预约的%s医生，就诊时间%s，现在离就诊时间还剩1小时，请提前到分诊台，进行确认。',
+    outPatientCallTemplate: '%s，请您到%s诊室就诊，接诊医师：%s',
+    notAvailableTemplate: '%s，很抱歉，您预约的%s医生，就诊时间%s已过，请及时与前台联系，谢谢！',
+    returnRegistrationTemplte: '%s，很抱歉，您预约的%s医生，就诊时间%s已过，请及时与前台联系，谢谢！'
 };
 

@@ -31,7 +31,7 @@ module.exports = {
                         patientBasicInfoId: req.user.id,
                         hospitalId: registration.hospitalId,
                         memberType: 1,
-                        balance:0.00,
+                        balance: 0.00,
                         memberCardNo: registration.hospitalId + '-1-' + _.padLeft(memberNo, 7, '0'),
                         createDate: new Date()
                     }).then(function (result) {
@@ -70,11 +70,11 @@ module.exports = {
         }).then(function (result) {
             deviceDAO.findTokenByUid(req.user.id).then(function (tokens) {
                 if (tokens.length && tokens[0]) {
-                    var notificationBody = util.format(config.registrationNotificationTemplate, registration.patientName,
-                        registration.hospitalName, registration.departmentName, registration.sequence, registration.registerDate);
+                    var notificationBody = util.format(config.registrationNotificationTemplate, registration.patientName + (registration.gender == 0 ? '先生' : '女士'),
+                        registration.hospitalName + registration.departmentName + registration.doctorName, registration.registerDate + ' ' + result[0].name);
                     pusher.push({
                         body: notificationBody,
-                        title: '预约挂号提醒',
+                        title: '预约成功',
                         audience: {registration_id: [tokens[0].token]},
                         patientName: registration.patientName,
                         patientMobile: registration.patientMobile,
@@ -130,6 +130,22 @@ module.exports = {
         }).then(function () {
             return registrationDAO.findShiftPeriodById(registration.hospitalId, registration.shiftPeriod);
         }).then(function (result) {
+            deviceDAO.findTokenByUid(req.user.id).then(function (tokens) {
+                if (tokens.length && tokens[0]) {
+                    var notificationBody = util.format(config.changeRegistrationTemplate, registration.patientName + (registration.gender == 0 ? '先生' : '女士'),
+                        registration.hospitalName + registration.departmentName + registration.doctorName, registration.registerDate + ' ' + result[0].name);
+                    pusher.push({
+                        body: notificationBody,
+                        title: '改约成功',
+                        audience: {registration_id: [tokens[0].token]},
+                        patientName: registration.patientName,
+                        patientMobile: registration.patientMobile,
+                        uid: req.user.id
+                    }, function (err, result) {
+                        if (err) throw err;
+                    });
+                }
+            });
             return res.send({
                 ret: 0,
                 data: {
@@ -152,6 +168,24 @@ module.exports = {
         }).then(function () {
             return registrationDAO.updateRegistration({id: rid, status: 4, updateDate: new Date()})
         }).then(function () {
+            deviceDAO.findTokenByUid(req.user.id).then(function (tokens) {
+                if (tokens.length && tokens[0]) {
+                    registrationDAO.findShiftPeriodById(registration.hospitalId, registration.shiftPeriod).then(function (result) {
+                        var notificationBody = util.format(config.cancelRegistrationTemplate, registration.patientName + (registration.gender == 0 ? '先生' : '女士'),
+                            registration.hospitalName + registration.departmentName + registration.doctorName, moment(registration.registerDate).format('YYYY-MM-DD') + ' ' + result[0].name);
+                        pusher.push({
+                            body: notificationBody,
+                            title: '取消预约',
+                            audience: {registration_id: [tokens[0].token]},
+                            patientName: registration.patientName,
+                            patientMobile: registration.patientMobile,
+                            uid: req.user.id
+                        }, function (err, result) {
+                            if (err) throw err;
+                        });
+                    });
+                }
+            });
             res.send({ret: 0, message: i18n.get('preRegistration.cancel.success')});
         });
         return next();
@@ -259,7 +293,7 @@ module.exports = {
                         hospitalId: contact.hospitalId,
                         memberType: 1,
                         source: contact.source,
-                        balance:0.00,
+                        balance: 0.00,
                         recommender: contact.businessPeopleId,
                         memberCardNo: contact.hospitalId + '-1-' + _.padLeft(memberNo, 7, '0'),
                         createDate: new Date()

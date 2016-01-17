@@ -46,5 +46,8 @@ module.exports = {
     },
     updatePerformance: function (businessPeopleId, yearMonth) {
         return db.query(sqlMapping.patient.updatePerformance, [businessPeopleId, yearMonth]);
+    },
+    findRegistrationByDate(date) {
+        return db.query(sqlMapping.registration.findRegistrationsByDate, date);
     }
 }
