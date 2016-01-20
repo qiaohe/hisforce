@@ -58,9 +58,11 @@ module.exports = {
             registration.outpatientStatus = 5;
             registration.memberType = 1;
             registration.creator = req.user.id;
-            return redis.incrAsync('doctor:' + registration.doctorId + ':d:' + registration.registerDate + ':incr').then(function (seq) {
-                registration.sequence = seq;
-                return registrationDAO.insert(registration)
+            return redis.incrAsync('doctor:' + registration.doctorId + ':d:' + registration.registerDate + ':period:' + registration.shiftPeriod + ':incr').then(function (seq) {
+                return redis.getAsync('h:' + registration.hospitalId + ':p:' + registration.shiftPeriod).then(function (sp) {
+                    registration.sequence = sp + seq;
+                    return registrationDAO.insert(registration);
+                });
             });
         }).then(function (result) {
             registration.id = result.insertId;

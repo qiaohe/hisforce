@@ -51,8 +51,9 @@ module.exports = {
     device: {
         insert: 'insert device set ?',
         findByToken: 'select * from device where token = ?',
-        update: 'update device set ? where token =?',
-        findTokenByUid: 'select token from device where uid=?'
+        update: 'update device set ? where id =?',
+        findTokenByUid: 'select token from device where uid=?',
+        findByUid: 'select * from device where uid=?'
     },
     notification: {
         insert: 'insert notification set ?',

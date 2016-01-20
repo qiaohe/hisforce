@@ -9,7 +9,8 @@ module.exports = {
     addDevice: function (req, res, next) {
         var device = req.body;
         device.createDate = new Date();
-        deviceDAO.findByToken(device.token).then(function (oldDevice) {
+        deviceDAO.findByUid(device.uid).then(function (oldDevice) {
+            if (oldDevice.length) device.id = oldDevice[0].id;
             return oldDevice.length ? deviceDAO.update(device) : deviceDAO.insert(device);
         }).then(function (result) {
             return res.send({ret: 0, message: i18n.get('device.add.success')})
