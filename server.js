@@ -59,7 +59,9 @@ registrationDAO.findRegistrationByDate(moment().format('YYYY-MM-DD')).then(funct
             });
         }
     })
-})
+});
+
+
 server.listen(config.server.port, config.server.host, function () {
     console.log('%s listening at %s', server.name, server.url);
 });

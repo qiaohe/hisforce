@@ -50,5 +50,8 @@ module.exports = {
     findRegistrationByDate: function (date) {
         console.log(date)
         return db.query(sqlMapping.registration.findRegistrationsByDate, date);
+    },
+    findPeriods: function(hospitalId) {
+        return db.query(sqlMapping.registration.findPeriods, hospitalId);
     }
 }
