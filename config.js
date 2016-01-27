@@ -45,6 +45,10 @@ module.exports = {
         masterSecret: "03001553e21aa6149ade49a3",
         appKey: "3a13b5337b61a7471eb6d4d4"
     },
+    rongcloud: {
+        appKey: 'm7ua80gbuxrim',
+        appSecret: 'Z4Vyp9riQ9'
+    },
     registrationType: ["线上预约", "线下预约", "现场挂号", "复诊预约", "转诊挂号", "现场加号", "线上加号", "销售预约", "销售加号"],
     registrationStatus: ["预约成功", "预约未支付", "预约失败", "预约变更", "预约取消"],
     transactionType: ['挂号消费', '充值交易'],

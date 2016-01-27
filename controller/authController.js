@@ -9,6 +9,8 @@ var registrationDAO = require('../dao/registrationDAO');
 var _ = require('lodash');
 var request = require('request');
 var moment = require('moment');
+var rongcloudSDK = require('rongcloud-sdk');
+rongcloudSDK.init(config.rongcloud.appKey, config.rongcloud.appSecret);
 function acceptInvitation(uid, invitationCode, mobile, token) {
     var contact = {};
     patientDAO.findContactByInvitationCode(invitationCode, mobile).then(function (contacts) {
@@ -72,7 +74,13 @@ module.exports = {
                     redis.set(token, JSON.stringify(user));
                     if (user.invitationCode)
                         acceptInvitation(result.insertId, user.invitationCode, user.mobile, token);
-                    res.send({ret: 0, data: {uid: result.insertId, token: token}});
+                    rongcloudSDK.user.getToken(result.insertId, user.name, '', function (err, resultText) {
+                        if (err) throw err;
+                        res.send({
+                            ret: 0,
+                            data: {uid: result.insertId, token: token, rongToken: JSON.parse(resultText).token}
+                        });
+                    });
                 });
             });
         });
@@ -95,7 +103,10 @@ module.exports = {
             }, config.app.tokenSecret, {expiresInMinutes: config.app.tokenExpire});
             redis.set(token, JSON.stringify(user));
             user.token = token;
-            res.send({ret: 0, data: user});
+            rongcloudSDK.user.getToken(user.id, userName, user.headPic, function (err, resultText) {
+                user.rongToken = JSON.parse(resultText).token;
+                res.send({ret: 0, data: user});
+            });
         });
         return next();
     },
@@ -107,7 +118,9 @@ module.exports = {
             res.send({ret: 0, message: i18n.get('logout.success')});
         });
         return next();
-    },
+    }
+
+    ,
     resetPwd: function (req, res, next) {
         var that = this;
         var mobile = req.body.username;
