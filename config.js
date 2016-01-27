@@ -24,8 +24,8 @@ module.exports = {
         welcomeMessage: '欢迎来到:hospital！'
     },
     redis: {
-        host: '121.42.171.213',
-        port: 6380
+        host: '127.0.0.1',
+        port: 6379
     },
     sms: {
         providerUrl: 'http://115.29.44.189:8080/sms/smsInterface.do',
