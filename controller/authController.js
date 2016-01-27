@@ -74,7 +74,7 @@ module.exports = {
                     redis.set(token, JSON.stringify(user));
                     if (user.invitationCode)
                         acceptInvitation(result.insertId, user.invitationCode, user.mobile, token);
-                    rongcloudSDK.user.getToken(result.insertId, user.name, '', function (err, resultText) {
+                    rongcloudSDK.user.getToken(result.insertId, user.name, 'http://7xoadl.com2.z0.glb.qiniucdn.com/user58.png', function (err, resultText) {
                         if (err) throw err;
                         res.send({
                             ret: 0,

@@ -11,6 +11,8 @@ var request = require('request');
 var moment = require('moment');
 var pusher = require('../domain/NotificationPusher');
 var util = require('util');
+var rongcloudSDK = require('rongcloud-sdk');
+rongcloudSDK.init(config.rongcloud.appKey, config.rongcloud.appSecret);
 module.exports = {
     preRegistration: function (req, res, next) {
         var registration = req.body;
@@ -270,6 +272,16 @@ module.exports = {
     getMemberInfo: function (req, res, next) {
         var uid = req.user.id;
         patientDAO.findById(uid).then(function (members) {
+            rongcloudSDK.user.getToken(members[0].id, members[0].name, members[0].headPic, function (err, resultText) {
+                members[0].rongToken = JSON.parse(resultText).token;
+                res.send({ret: 0, data: members[0]});
+            });
+        });
+        return next();
+    },
+    getMemberInfoBy: function (req, res, next) {
+        var mid = req.params.id;
+        patientDAO.findById(mid).then(function (members) {
             res.send({ret: 0, data: members[0]});
         });
         return next();

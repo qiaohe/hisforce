@@ -149,6 +149,13 @@ module.exports = [
         secured: "user"
     },
     {
+        method: "get",
+        path: "/api/members/:id",
+        handler: patientController.getMemberInfoBy,
+        secured: "user"
+    },
+
+    {
         method: "put",
         path: "/api/me",
         handler: patientController.updateMemberInfo,
