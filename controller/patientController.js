@@ -211,6 +211,31 @@ module.exports = {
         });
         return next();
     },
+    favoriteHospital: function (req, res, next) {
+        var uid = req.user.id;
+        var queue = 'uid:' + uid + ':favorite:' + 'hospitals';
+        var hospitalId = req.body.hospitalId;
+        var result = {uid: uid, hospitalId: hospitalId, favourited: true};
+        redis.zrankAsync(queue, hospitalId).then(function (index) {
+            if (index == null) return redis.zadd(queue, new Date().getTime(), hospitalId);
+            result.favourited = false;
+            return redis.zrem(queue, hospitalId);
+        }).then(function () {
+            return hospitalDAO.findHospitalById(hospitalId);
+        }).then(function (cs) {
+            if (result.favourited && cs.length) {
+                var message = config.app.welcomeMessage.replace(':hospital', cs[0].name);
+                rongcloudSDK.message.private.publish(hospitalId + '-' + cs[0].customerServiceUid, uid, 'RC:TxtMsg', JSON.stringify({content: message}), message, 0, 1, 'json', function (err, resultText) {
+                    if (err) throw err;
+                    res.send({ret: 0, data: result});
+                });
+            } else {
+                res.send({ret: 0, data: result});
+            }
+        });
+        return next();
+    },
+
     getFavouritedDoctors: function (req, res, next) {
         var uid = req.user.id;
         var queue = 'uid:' + uid + ':favorite:' + 'doctors';
@@ -221,6 +246,19 @@ module.exports = {
             res.send({ret: 0, data: doctors});
         });
         return next();
+    },
+
+    getFavouritedHospitals: function (req, res, next) {
+        var uid = req.user.id;
+        var queue = 'uid:' + uid + ':favorite:' + 'hospitals';
+        redis.zrangeAsync([queue, +req.query.from, +req.query.from + (+req.query.size) - 1]).then(function (ids) {
+            if (!ids.length) return [];
+            return hospitalDAO.findHospitalsByIds(ids.join(','));
+        }).then(function (hospitals) {
+            res.send({ret: 0, data: hospitals});
+        });
+        return next();
+
     },
     getMyPreRegistrations: function (req, res, next) {
         var uid = req.user.id;
@@ -281,9 +319,15 @@ module.exports = {
     },
     getMemberInfoBy: function (req, res, next) {
         var mid = req.params.id;
-        patientDAO.findById(mid).then(function (members) {
-            res.send({ret: 0, data: members[0]});
-        });
+        if (mid.indexOf('-') > -1) {
+            hospitalDAO.findHospitalById(mid.split('-')[0]).then(function (hs) {
+                res.send({ret: 0, data: hs[0]});
+            })
+        } else {
+            patientDAO.findById(mid).then(function (members) {
+                res.send({ret: 0, data: members[0]});
+            });
+        }
         return next();
     },
     updateMemberInfo: function (req, res, next) {

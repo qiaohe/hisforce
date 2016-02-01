@@ -27,9 +27,18 @@ module.exports = {
         return db.query(sqlMapping.hospital.findById, hospitalId);
     },
 
+    findHospitalByIdWith: function (hospitalId) {
+        return db.query(sqlMapping.hospital.findByIdWith, hospitalId);
+    },
+
     findDoctorByIds: function (ids) {
         var sql = 'select id, name, departmentName,hospitalId, hospitalName, headPic,registrationFee, speciality,jobTitle ' +
             'from Doctor where id in(' + ids + ') order by field(id, ' + ids + ')';
+        return db.query(sql);
+    },
+
+    findHospitalsByIds: function (ids) {
+        var sql = 'select id, name, tag, images, address, icon, introduction from Hospital where id in(' + ids + ') order by field(id, ' + ids + ')';
         return db.query(sql);
     },
 
@@ -44,5 +53,9 @@ module.exports = {
 
     findTransactionFlowsByUid: function (uid, from, size) {
         return db.query(sqlMapping.transactionFlow.findByUid, [uid, from, size]);
+    },
+    findCustomerServiceId: function (hospitalId) {
+        return db.query(sqlMapping.hospital.findCustomerServiceId, hospitalId);
     }
+
 }

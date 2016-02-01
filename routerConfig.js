@@ -111,9 +111,21 @@ module.exports = [
         secured: "user"
     },
     {
+        method: "post",
+        path: "/api/favorites/hospitals",
+        handler: patientController.favoriteHospital,
+        secured: "user"
+    },
+    {
         method: "get",
         path: "/api/favorites/doctors",
         handler: patientController.getFavouritedDoctors,
+        secured: "user"
+    },
+  {
+        method: "get",
+        path: "/api/favorites/hospitals",
+        handler: patientController.getFavouritedHospitals,
         secured: "user"
     },
 

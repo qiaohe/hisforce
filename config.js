@@ -29,8 +29,8 @@ module.exports = {
     },
     sms: {
         providerUrl: 'http://115.29.44.189:8080/sms/smsInterface.do',
-        template: '【好医通】您的短信验证码是:code,在60秒内输入有效.',
-        expireTime: 600,
+        template: '【云诊宝】您的短信验证码是:code,在60秒内输入有效.',
+        expireTime: 60000,
         option: {
             username: 'tuning',
             password: '111111'
@@ -42,8 +42,8 @@ module.exports = {
         prefix: "http://7xoadl.com2.z0.glb.qiniucdn.com/"
     },
     jpush: {
-        masterSecret: "03001553e21aa6149ade49a3",
-        appKey: "3a13b5337b61a7471eb6d4d4"
+        masterSecret: "e359739da88500a8e7a93a3b",
+        appKey: "ba7b7b62680de68a0d19fa5a"
     },
     rongcloud: {
         appKey: 'm7ua80gbuxrim',

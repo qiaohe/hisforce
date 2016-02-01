@@ -14,9 +14,11 @@ module.exports = {
     },
     hospital: {
         findByNameLike: 'select id, name, tag from Hospital where name like ?',
-        findById: 'select id, name, tag, images, address, icon, introduction from Hospital where id = ?',
+        findById: 'select id, name, tag, images, address, icon, introduction, customerServiceUid from Hospital where id = ?',
+        findByIdWith: 'select id, name, icon as headPic from Hospital where id=?',
         insertPatient: 'insert Patient set ?',
         findPatientByBasicInfoId: 'select * from Patient where patientBasicInfoId = ?',
+        findCustomerServiceId: 'select customerServiceUid from Hospital where id =?',
         findPatientByBasicInfoIdAndHospitalId: 'select * from Patient where patientBasicInfoId = ? and hospitalId= ?'
     },
 
@@ -47,7 +49,7 @@ module.exports = {
         findByKey: 'select * from SysConfig where `key`=?'
     },
     transactionFlow: {
-        findByUid: 'select tf.amount, tf.type,tf.createDate, h.`name` as hospitalName, h.icon as hospitalIcon from TransactionFlow tf, Hospital h WHERE tf.hospitalId = h.id and tf.patientBasicInfoId=? limit ?, ?'
+        findByUid: 'select tf.amount, tf.type,tf.createDate, h.`name` as hospitalName, h.icon as hospitalIcon from TransactionFlow tf, Hospital h WHERE tf.hospitalId = h.id and tf.patientBasicInfoId=? order by tf.createDate desc limit ?, ?'
     },
     device: {
         insert: 'insert device set ?',

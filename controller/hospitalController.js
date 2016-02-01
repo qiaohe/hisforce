@@ -5,6 +5,8 @@ var i18n = require('../i18n/localeMessage');
 var hospitalDAO = require('../dao/hospitalDAO');
 var _ = require('lodash');
 var moment = require('moment');
+var rongcloudSDK = require('rongcloud-sdk');
+rongcloudSDK.init(config.rongcloud.appKey, config.rongcloud.appSecret);
 module.exports = {
     searchHospital: function (req, res, next) {
         hospitalDAO.searchHospital(req.query.name, {

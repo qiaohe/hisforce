@@ -11,13 +11,13 @@ var request = require('request');
 var moment = require('moment');
 var rongcloudSDK = require('rongcloud-sdk');
 rongcloudSDK.init(config.rongcloud.appKey, config.rongcloud.appSecret);
-function acceptInvitation(uid, invitationCode, mobile, token) {
+function acceptInvitation(uid, invitationCode, mobile, token, res) {
     var contact = {};
     patientDAO.findContactByInvitationCode(invitationCode, mobile).then(function (contacts) {
         if (!contacts.length) return res.send({ret: 1, message: i18n.get('invitation.code.invalid')});
         contact = contacts[0];
         return registrationDAO.updateInvitationContact({id: contact.id, inviteResult: '已绑定'}).then(function () {
-            registrationDAO.updatePerformance(contact.businessPeopleId, moment().format('YYYYMM')).then(function () {
+            return registrationDAO.updatePerformance(contact.businessPeopleId, moment().format('YYYYMM')).then(function () {
                 return registrationDAO.findPatientByBasicInfoIdAndHospitalId(uid, contact.hospitalId);
             });
         })
@@ -38,21 +38,13 @@ function acceptInvitation(uid, invitationCode, mobile, token) {
         }
     }).then(function () {
         var message = config.app.welcomeMessage.replace(':hospital', contact.hospitalName);
-        var options = {
-            url: config.app.imServer,
-            method: 'POST',
-            json: true,
-            headers: {'token': token},
-            body: {
-                receiverId: uid,
-                isPatient: 'true',
-                message: message,
-                sender: {uid: 1, isPatient: false}
-            }
-        };
-        request.post(options, function callback(error, response, data) {
-        });
+        rongcloudSDK.message.private.publish('1-1', '1', 'RC:TxtMsg', JSON.stringify({content: message}), message, 0, 1, 'json', function (err, resultText) {
+        if (err) throw err;
+        console.log(resultText);
     });
+}
+)
+;
 }
 module.exports = {
     register: function (req, res, next) {
@@ -73,7 +65,7 @@ module.exports = {
                     }, config.app.tokenSecret, {expiresIn: config.app.tokenExpire});
                     redis.set(token, JSON.stringify(user));
                     if (user.invitationCode)
-                        acceptInvitation(result.insertId, user.invitationCode, user.mobile, token);
+                        acceptInvitation(result.insertId, user.invitationCode, user.mobile, token, res);
                     rongcloudSDK.user.getToken(result.insertId, user.name, 'http://7xoadl.com2.z0.glb.qiniucdn.com/user58.png', function (err, resultText) {
                         if (err) throw err;
                         res.send({
