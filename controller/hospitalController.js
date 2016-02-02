@@ -61,11 +61,15 @@ module.exports = {
         return next();
     },
     getHospitalById: function (req, res, next) {
+        var queue = 'uid:' + req.user.id + ':favorite:' + 'hospitals';
         hospitalDAO.findHospitalById(req.params.hospitalId).then(function (hospitals) {
             if (!hospitals.length) return res.send({ret: 0, data: null});
             var hospital = hospitals[0];
             hospital.images = hospital.images && hospital.images.split(',');
-            res.send({ret: 0, data: hospital});
+            return redis.zrankAsync(queue, req.params.hospitalId).then(function (index) {
+                hospital.favorited = (index != null);
+                res.send({ret: 0, data: hospital});
+            });
         });
         return next();
     },

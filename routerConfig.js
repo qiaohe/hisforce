@@ -62,7 +62,8 @@ module.exports = [
     {
         method: "get",
         path: "/api/hospitals/:hospitalId",
-        handler: hospitalController.getHospitalById
+        handler: hospitalController.getHospitalById,
+        secured: 'user'
     },
     {
         method: "get",
