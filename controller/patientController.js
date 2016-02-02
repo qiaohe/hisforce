@@ -20,7 +20,7 @@ module.exports = {
         registration.patientBasicInfoId = req.user.id;
         registration.hospitalId = req.user.hospitalId;
         patientDAO.findById(req.user.id).then(function (basicInfoIds) {
-            registration.patientName = basicInfoIds[0].name;
+            registration.patientName = registration.patientName ? registration.patientName : basicInfoIds[0].name;
             registration.patientMobile = basicInfoIds[0].mobile;
             registration.gender = basicInfoIds[0].gender;
             return registrationDAO.findPatientByBasicInfoIdAndHospitalId(req.user.id, registration.hospitalId)
