@@ -38,7 +38,12 @@ module.exports = {
     },
 
     findHospitalsByIds: function (ids) {
-        var sql = 'select id, name, tag, images, address, icon, introduction from Hospital where id in(' + ids + ') order by field(id, ' + ids + ')';
+        var sql = 'select id, name, tag, images, address, icon, introduction, customerServiceUid from Hospital where id in(' + ids + ') order by field(id, ' + ids + ')';
+        return db.query(sql);
+    },
+
+    findHospitalsByIdsMin: function (ids) {
+        var sql = 'select id, name, tag, images, address, icon, customerServiceUid from Hospital where id in(' + ids + ') order by field(id, ' + ids + ')';
         return db.query(sql);
     },
 

@@ -9,6 +9,7 @@ module.exports = {
     addDevice: function (req, res, next) {
         var device = req.body;
         device.createDate = new Date();
+        if (!device.token) return res.send({ret:0, message:'无效的Token'});
         deviceDAO.findByUid(device.uid).then(function (oldDevice) {
             if (oldDevice.length) device.id = oldDevice[0].id;
             return oldDevice.length ? deviceDAO.update(device) : deviceDAO.insert(device);
@@ -27,7 +28,8 @@ module.exports = {
         return next();
     },
     getNotifications: function (req, res, next) {
-        notificationDAO.findNotifications({from: +req.query.from, size: +req.query.size}).then(function (ns) {
+        var uid = req.user.id;
+        notificationDAO.findNotifications(uid, {from: +req.query.from, size: +req.query.size}).then(function (ns) {
             res.send({ret: 0, data: ns});
         });
         return next();
