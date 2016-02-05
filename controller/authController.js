@@ -5,9 +5,9 @@ var config = require('../config');
 var redis = require('../common/redisClient');
 var i18n = require('../i18n/localeMessage');
 var patientDAO = require('../dao/patientDAO');
+var hospitalDAO = require('../dao/hospitalDAO');
 var registrationDAO = require('../dao/registrationDAO');
 var _ = require('lodash');
-var request = require('request');
 var moment = require('moment');
 var rongcloudSDK = require('rongcloud-sdk');
 rongcloudSDK.init(config.rongcloud.appKey, config.rongcloud.appSecret);
@@ -37,14 +37,16 @@ function acceptInvitation(uid, invitationCode, mobile, token, res) {
             });
         }
     }).then(function () {
-        var message = config.app.welcomeMessage.replace(':hospital', contact.hospitalName);
-        rongcloudSDK.message.private.publish('1-1', '1', 'RC:TxtMsg', JSON.stringify({content: message}), message, 0, 1, 'json', function (err, resultText) {
-        if (err) throw err;
-        console.log(resultText);
-    });
-}
-)
-;
+            var message = config.app.welcomeMessage.replace(':hospital', contact.hospitalName);
+            hospitalDAO.findHospitalById(contact.hospitalId).then(function (hs) {
+                rongcloudSDK.message.private.publish(contact.hospitalId + '-' + hs[0].customerServiceUid, uid, 'RC:TxtMsg', JSON.stringify({content: message}), message, 0, 1, 'json', function (err, resultText) {
+                    if (err) throw err;
+                    console.log(resultText);
+                });
+            });
+        }
+    )
+    ;
 }
 module.exports = {
     register: function (req, res, next) {
@@ -54,10 +56,13 @@ module.exports = {
             if (!(reply && reply == user.certCode)) return res.send({ret: 1, message: i18n.get('sms.code.invalid')});
             return patientDAO.findByMobile(user.mobile).then(function (users) {
                 if (users.length) return res.send({ret: 1, message: i18n.get('user.mobile.exists')});
-                return patientDAO.insert(_.assign(_.omit(user, ['certCode', 'invitationCode']), {
+                user = _.assign(_.omit(user, ['certCode', 'invitationCode']), {
                     createDate: new Date(),
-                    password: md5(req.body.password)
-                })).then(function (result) {
+                    password: md5(req.body.password),
+                    name: user.name ? user.name : '患者' + user.mobile.substring(user.mobile.length - 4, user.mobile.length),
+                    headPic: 'http://7xoadl.com2.z0.glb.qiniucdn.com/headDefaultMale.png'
+                });
+                return patientDAO.insert(user).then(function (result) {
                     var token = jwt.sign({
                         name: user.name,
                         mobile: user.mobile,
@@ -66,11 +71,14 @@ module.exports = {
                     redis.set(token, JSON.stringify(user));
                     if (user.invitationCode)
                         acceptInvitation(result.insertId, user.invitationCode, user.mobile, token, res);
+                    user.id = result.insertId;
                     rongcloudSDK.user.getToken(result.insertId, user.name, 'http://7xoadl.com2.z0.glb.qiniucdn.com/user58.png', function (err, resultText) {
                         if (err) throw err;
+                        user.token = token;
+                        user.rongToken = JSON.parse(resultText).token;
                         res.send({
                             ret: 0,
-                            data: {uid: result.insertId, token: token, rongToken: JSON.parse(resultText).token}
+                            data: user
                         });
                     });
                 });
