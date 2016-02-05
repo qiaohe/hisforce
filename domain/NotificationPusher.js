@@ -12,8 +12,15 @@ module.exports = {
             .send(function (err, response) {
                 if (err) throw err;
                 notificationDAO.insert({
-                    body: notification.body, title: notification.title, extra: JSON.stringify(notification.extra),
-                    createDate: new Date(), sendno: response.sendno, msg_id: response.msg_id
+                    body: notification.body,
+                    title: notification.title,
+                    extra: JSON.stringify(notification.extra),
+                    createDate: new Date(),
+                    sendno: response.sendno,
+                    msg_id: response.msg_id,
+                    uid: notification.uid,
+                    patientName: notification.patientName,
+                    patientMobile: notification.patientMobile
                 }).then(function (result) {
                     return callback(err, result);
                 })

@@ -196,5 +196,18 @@ module.exports = [
         path: "/api/notifications",
         handler: deviceController.getNotifications,
         secured: 'user'
+    },
+    {
+        method: "get",
+        path: "/api/welcomeMessages",
+        handler: patientController.sendWelcomeMessages,
+        secured: 'user'
+    },
+    {
+        method: "get",
+        path: "/api/changeMobile",
+        handler: patientController.changeMobile,
+        secured: 'user'
     }
+
 ];

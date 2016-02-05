@@ -9,6 +9,7 @@ var deviceDAO = require('../dao/deviceDAO');
 var _ = require('lodash');
 var request = require('request');
 var moment = require('moment');
+var Promise = require('bluebird');
 var pusher = require('../domain/NotificationPusher');
 var util = require('util');
 var rongcloudSDK = require('rongcloud-sdk');
@@ -253,13 +254,37 @@ module.exports = {
         var queue = 'uid:' + uid + ':favorite:' + 'hospitals';
         redis.zrangeAsync([queue, +req.query.from, +req.query.from + (+req.query.size) - 1]).then(function (ids) {
             if (!ids.length) return [];
-            return hospitalDAO.findHospitalsByIds(ids.join(','));
+            return hospitalDAO.findHospitalsByIdsMin(ids.join(','));
         }).then(function (hospitals) {
+            hospitals && hospitals.forEach(function (h) {
+                if (h.customerServiceUid)
+                    h.rongCloudUid = h.id + '-' + h.customerServiceUid;
+                delete h.customerServiceUid;
+            });
             res.send({ret: 0, data: hospitals});
         });
         return next();
-
     },
+
+    sendWelcomeMessages: function (req, res, next) {
+        var uid = req.user.id;
+        var queue = 'uid:' + uid + ':favorite:' + 'hospitals';
+        redis.zrangeAsync([queue, 0, 1000]).then(function (ids) {
+            if (!ids.length) return [];
+            return hospitalDAO.findHospitalsByIdsMin(ids.join(','));
+        }).then(function (hospitals) {
+            Promise.map(hospitals, function (h, index) {
+                var message = config.app.welcomeMessage.replace(':hospital', h.name);
+                rongcloudSDK.message.private.publish(h.id + '-' + h.customerServiceUid, uid, 'RC:TxtMsg', JSON.stringify({content: message}), message, 0, 1, 'json', function (err, resultText) {
+                    if (err) throw err;
+                    res.send({ret: 0, data: result});
+                });
+            }).then(function () {
+                res.send({ret: 0, message: '发送欢迎消息成功'});
+            })
+        });
+    },
+
     getMyPreRegistrations: function (req, res, next) {
         var uid = req.user.id;
         registrationDAO.findRegistrationByUid(uid, {
@@ -272,7 +297,9 @@ module.exports = {
             res.send({ret: 0, data: registrations});
         });
         return next();
-    },
+    }
+
+    ,
 
     getDoctorsWithSameRegistrationId: function (req, res, next) {
         var rid = req.params.rid;
@@ -283,7 +310,8 @@ module.exports = {
             return res.send({ret: 0, data: doctors});
         });
         return next();
-    },
+    }
+    ,
     getPrePaidCards: function (req, res, next) {
         var uid = req.user.id;
         patientDAO.findByUid(uid).then(function (cards) {
@@ -295,7 +323,8 @@ module.exports = {
             res.send({ret: 0, data: cards});
         });
         return next();
-    },
+    }
+    ,
 
     getTransactionFlows: function (req, res, next) {
         hospitalDAO.findTransactionFlowsByUid(req.user.id, +req.query.from, +req.query.size).then(function (flows) {
@@ -306,7 +335,8 @@ module.exports = {
             return res.send({ret: 0, data: flows});
         });
         return next();
-    },
+    }
+    ,
     getMemberInfo: function (req, res, next) {
         var uid = req.user.id;
         patientDAO.findById(uid).then(function (members) {
@@ -316,7 +346,8 @@ module.exports = {
             });
         });
         return next();
-    },
+    }
+    ,
     getMemberInfoBy: function (req, res, next) {
         var mid = req.params.id;
         if (mid.indexOf('-') > -1) {
@@ -329,7 +360,8 @@ module.exports = {
             });
         }
         return next();
-    },
+    }
+    ,
     updateMemberInfo: function (req, res, next) {
         req.body.id = req.user.id;
         patientDAO.updateByUid(req.body).then(function (result) {
@@ -338,14 +370,19 @@ module.exports = {
             res.send({ret: 0, data: members[0]});
         });
         return next();
-    },
+    }
+    ,
     acceptInvitation: function (req, res, next) {
         var uid = req.user.id;
         var contact = {};
         patientDAO.findContactByInvitationCode(req.body.invitationCode, req.user.mobile).then(function (contacts) {
             if (!contacts.length) return res.send({ret: 1, message: i18n.get('invitation.code.invalid')});
             contact = contacts[0];
-            return registrationDAO.findPatientByBasicInfoIdAndHospitalId(req.user.id, contact.hospitalId);
+            return registrationDAO.updateInvitationContact({id: contact.id, inviteResult: '已绑定'}).then(function () {
+                return registrationDAO.updatePerformance(contact.businessPeopleId, moment().format('YYYYMM')).then(function () {
+                    return registrationDAO.findPatientByBasicInfoIdAndHospitalId(uid, contact.hospitalId);
+                });
+            });
         }).then(function (patients) {
             if (!patients.length) {
                 return redis.incrAsync('member.no.incr').then(function (memberNo) {
@@ -367,23 +404,27 @@ module.exports = {
             return patientDAO.findByUidAndHospitalId(req.user.id, contact.hospitalId);
         }).then(function (cards) {
             var message = config.app.welcomeMessage.replace(':hospital', contact.hospitalName);
-            var options = {
-                url: config.app.imServer,
-                method: 'POST',
-                json: true,
-                headers: {'token': req.headers['token'] || req.query.token || req.body.token},
-                body: {
-                    receiverId: req.user.id,
-                    isPatient: 'true',
-                    message: message,
-                    sender: {uid: 1, isPatient: false}
-                }
-            };
-            request.post(options, function callback(error, response, data) {
-                console.log(response);
+            rongcloudSDK.message.private.publish(contact.hospitalId + '-' + uid, uid, 'RC:TxtMsg', JSON.stringify({content: message}), message, 0, 1, 'json', function (err, resultText) {
+                if (err) throw err;
+                console.log(resultText);
             });
+
             cards[0].source = config.sourceType[cards[0].source];
             return res.send({ret: 0, data: cards[0]});
+        });
+        return next();
+    },
+
+    changeMobile: function (req, res, next) {
+        var uid = req.user.id;
+        redis.getAsync(user.mobile).then(function (reply) {
+            if (!(reply && reply == req.body.certCode)) return res.send({
+                ret: 1,
+                message: i18n.get('sms.code.invalid')
+            });
+            return patientDAO.updateByUid({id: uid, mobile: req.body.mobile})
+        }).then(function () {
+            res.send({ret: 0, message: '修改绑定手机成功'});
         });
         return next();
     }
