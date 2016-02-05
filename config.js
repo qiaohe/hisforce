@@ -60,12 +60,12 @@ module.exports = {
     cashbackType: ['赠劵', '优惠券', '免单'],
     paymentType: ['银行卡', '储值卡', '现金', '代付', '微信钱包', '支付宝'],
     consumptionLevel: ['<1000', '1000~3000', '3000~5000', '5000~10000', '>10000'],
-    registrationNotificationTemplate: '%s，您已成功预约%s医生，就诊时间%s，请提前到半小时到分诊台，进行取号确认',
-    changeRegistrationTemplate: '%s，您已成功改约%s医生，就诊时间%s，请提前到半小时到分诊台，进行取号确认。',
-    cancelRegistrationTemplate: '%s，您已成功取消预约%s，如有需要请再次预约，谢谢！',
-    outPatientReminderTemplate: '%s，您预约的%s医生，就诊时间%s，现在离就诊时间还剩1小时，请提前到分诊台，进行确认。',
-    outPatientCallTemplate: '%s，请您到%s诊室就诊，接诊医师：%s',
-    notAvailableTemplate: '%s，很抱歉，您预约的%s医生，就诊时间%s已过，请及时与前台联系，谢谢！',
-    returnRegistrationTemplte: '%s，很抱歉，您预约的%s医生，就诊时间%s已过，请及时与前台联系，谢谢！'
+    registrationNotificationTemplate: '【%s】，您已预约【%s医生】门诊，就诊时间%s。请提前半小时到分诊台，进行取号确认。',
+    changeRegistrationTemplate: '【%s】，您已改约【%s医生】门诊，就诊时间%s。请提前半小时到分诊台，进行取号确认。',
+    cancelRegistrationTemplate: '【%s】，您已取消预约【%s医生】%s门诊，如有需要请再次预约，谢谢！',
+    outPatientReminderTemplate: '【%s】，您预约的【%s医生】门诊，就诊时间%s，现在离就诊时间还剩1小时，请提前到分诊台，进行确认。',
+    outPatientCallTemplate: '【%s】，请您到%s诊室就诊，接诊医生：【%s】。',
+    notAvailableTemplate: '【%s】，很抱歉，您预约的【%s医生】门诊，就诊时间%s已过，请及时与前台联系，谢谢！',
+    returnRegistrationTemplte: '【%s】，很抱歉，您预约的【%s医生】门诊，就诊时间%s已过，请及时与前台联系，谢谢！'
 };
 

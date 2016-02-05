@@ -1,4 +1,5 @@
 'use strict';
+console.log('13671719882'.substring(2, 5));
 var restify = require('restify');
 var config = require('./config');
 var router = require('./common/router');
@@ -11,7 +12,6 @@ var deviceDAO = require('./dao/deviceDAO');
 var moment = require('moment');
 var util = require('util');
 var pusher = require('./domain/NotificationPusher');
-
 restify.CORS.ALLOW_HEADERS.push('Access-Control-Allow-Origin');
 server.use(restify.CORS());
 server.opts(/.*/, function (req, res, next) {
